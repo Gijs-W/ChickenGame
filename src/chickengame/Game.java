@@ -1,5 +1,6 @@
 package chickengame;
 
+import chickengame.controller.GameLoopController;
 import chickengame.controller.MouseController;
 import java.awt.Canvas;
 import java.awt.Dimension;
@@ -7,6 +8,8 @@ import java.awt.Graphics2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferStrategy;
+import java.util.Observable;
+import java.util.Observer;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -14,23 +17,22 @@ import javax.swing.JPanel;
  *
  * @author Ricardo
  */
-public class Game implements Runnable {
+public class Game implements Runnable, Observer {
 
-    final int WIDTH = 800;
-    final int HEIGHT = 500;
+    final static int WIDTH = 800;
+    final static int HEIGHT = 500;
     
     JFrame frame;
     Canvas canvas;
     BufferStrategy bufferStrategy;
     
-    long desiredFPS = 60;
-    long desiredDeltaLoop = (1000*1000*1000)/desiredFPS;
     
-    boolean running = true;
     
     Chicken chicken1;
     
     MouseController mouseController;
+    
+    GameLoopController gameLoopController;
     
     public Game() {
         frame = new JFrame("Basic Game");
@@ -56,46 +58,24 @@ public class Game implements Runnable {
 
         canvas.requestFocus();
         mouseController = new MouseController();
+        gameLoopController = new GameLoopController();
         
         canvas.addMouseListener(mouseController);
+        
+        init();
     }
     
    
-    public void Init() {
+    public void init() {
         chicken1 = new Chicken(100, 100);
         mouseController.addObserver(chicken1);
+        gameLoopController.addObserver(this);
+        
     }
     
     public void run() {
 
-        long beginLoopTime;
-        long endLoopTime;
-        long currentUpdateTime = System.nanoTime();
-        long lastUpdateTime;
-        long deltaLoop;
-
-        while (running) {
-            beginLoopTime = System.nanoTime();
-
-            render();
-
-            lastUpdateTime = currentUpdateTime;
-            currentUpdateTime = System.nanoTime();
-            update((int) ((currentUpdateTime - lastUpdateTime) / (1000 * 1000)));
-
-            endLoopTime = System.nanoTime();
-            deltaLoop = endLoopTime - beginLoopTime;
-
-            if (deltaLoop > desiredDeltaLoop) {
-                //Do nothing. We are already late.
-            } else {
-                try {
-                    Thread.sleep((desiredDeltaLoop - deltaLoop) / (1000 * 1000));
-                } catch (InterruptedException e) {
-                    //Do nothing
-                }
-            }
-        }
+        gameLoopController.loop();
     }
     
     private void render() {
@@ -107,34 +87,25 @@ public class Game implements Runnable {
         bufferStrategy.show();
     }
     
-    //TESTING
-    private double x = 0;
-    private double y = 0;
 
-    /**
-     * Rewrite this method for your game
-     */
-    protected void update(int deltaTime) {
-        x += deltaTime * 0.2;
-        while (x > 500) {
-            x -= 500;
-        }
-        
-        y += deltaTime * 0.2;
-        while (y > 500) {
-            y -= 500;
-        }
-    }
+
+  
     
     /**
      * Rewrite this method for your game
      */
     protected void render(Graphics2D g) {
-        g.fillRect((int) x, (int)y, 60, 60);
+        g.fillRect(chicken1.getPosX(), chicken1.getPosY(), chicken1.HEIGHT, chicken1.WIDTH);
     }
 
     public static void main(String[] args) {
         Game ex = new Game();
         new Thread(ex).start();
     }    
+
+    @Override
+    public void update(Observable o, Object o1) {
+        chicken1.tick();
+        render();
+    }
 }
