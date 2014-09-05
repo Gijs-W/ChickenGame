@@ -1,5 +1,6 @@
 package chickengame;
 
+import chickengame.controller.MouseController;
 import java.awt.Canvas;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -29,6 +30,8 @@ public class Game implements Runnable {
     
     Chicken chicken1;
     
+    MouseController mouseController;
+    
     public Game() {
         frame = new JFrame("Basic Game");
 
@@ -42,7 +45,6 @@ public class Game implements Runnable {
 
         panel.add(canvas);
 
-        canvas.addMouseListener(new MouseControl());
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
@@ -53,24 +55,15 @@ public class Game implements Runnable {
         bufferStrategy = canvas.getBufferStrategy();
 
         canvas.requestFocus();
+        mouseController = new MouseController();
+        
+        canvas.addMouseListener(mouseController);
     }
     
-    private class MouseControl extends MouseAdapter{
-      public void mousePressed(MouseEvent e) {
-          int mouseX = e.getX();
-          int mouseY = e.getY();
-          
-          if (mouseX >= x && mouseX <= x+60
-                  && mouseY > y && mouseY <= y+60)
-          {
-              //hit
-              System.out.println("\nHIT BITCH!");
-          }
-      }
-   }
-    
+   
     public void Init() {
         chicken1 = new Chicken(100, 100);
+        mouseController.addObserver(chicken1);
     }
     
     public void run() {
