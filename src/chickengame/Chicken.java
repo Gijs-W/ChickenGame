@@ -1,8 +1,11 @@
 package chickengame;
 
+import chickengame.util.EventListenerList;
 import chickengame.util.MouseCoordinate;
+import event.HitListener;
 import java.util.Observable;
 import java.util.Observer;
+
 
 /**
  *
@@ -18,14 +21,17 @@ public class Chicken implements Observer {
     
     private int posX, posY;
     
+    private EventListenerList eventListeners = new EventListenerList();
+    
+    
     //Image Bufferedreader
     
     public Chicken(int positionX, int positionY) {
         this.posX = positionX;
         this.posY = positionY;
         
-        speedX = 3;
-        speedY = 3;
+        speedX = 1;
+        speedY = 2;
         
     }
     
@@ -34,15 +40,17 @@ public class Chicken implements Observer {
         MouseCoordinate coordinate = (MouseCoordinate) o1;
         
          if (coordinate.getXpos() >= posX && coordinate.getXpos() <= posX+WIDTH
-                  && coordinate.getYpos() > posY && coordinate.getYpos() <= posY+HEIGHT)
+                  && coordinate.getYpos() >= posY && coordinate.getYpos() <= posY+HEIGHT)
           {
               //hit
-              System.out.println("\nHIT BITCH! X="+posX+" Y="+posY );
+              System.out.println("\nHIT! X="+posX+" Y="+posY );
               
               
             increaseSpeed();
           }
-         
+         else {
+             decreaseSpeed();
+         }
        
     }
     
@@ -50,6 +58,7 @@ public class Chicken implements Observer {
         
         posX += speedX;
         posY += speedY;
+
         
         if (posX + WIDTH > Game.WIDTH) {
           speedX *= -1;
@@ -63,7 +72,7 @@ public class Chicken implements Observer {
         if (posY < 0) {
           speedY *= -1;
         }
-        
+               
     }
 
     public int getPosX() {
@@ -77,6 +86,16 @@ public class Chicken implements Observer {
     private void increaseSpeed() {
         speedX *= 2;
         speedY *= 2;
+    }
+    
+    
+    private void decreaseSpeed() {
+        speedX /= 2;
+        speedY /= 2;
+    }
+    
+    public void addHitListener(HitListener l) {
+        eventListeners.add(HitListener.class, l);
     }
     
 }
